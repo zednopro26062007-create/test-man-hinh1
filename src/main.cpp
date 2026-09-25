@@ -9,42 +9,74 @@
 #define TFT_MOSI  11
 #define TFT_SCLK  12
 
-Adafruit_ILI9341 tft(TFT_CS, TFT_DC, TFT_RST);
+Adafruit_ST7789 tft(TFT_CS, TFT_DC, TFT_RST);
+
+bool heartVisible = true;
+unsigned long lastBlink = 0;
+
+void drawHearts()
+{
+    tft.setTextColor(ST77XX_RED);
+    tft.setTextSize(3);
+
+    tft.setCursor(45, 150);
+    tft.print("<3 <3 <3");
+}
 
 void setup()
 {
-    SPI.begin(TFT_SCLK, -1, TFT_MOSI, TFT_CS);
+    Serial.begin(115200);
 
-    tft.begin();
+    SPI.begin(
+        TFT_SCLK,
+        -1,
+        TFT_MOSI,
+        TFT_CS
+    );
 
-    // Thử hướng dọc trước
-    tft.setRotation(0);
+    // ST7789 240x320
+    tft.init(240, 320);
 
-    // Test toàn màn hình
-    tft.fillScreen(ILI9341_RED);
-    delay(1000);
+    // Hướng dọc
+    tft.setRotation(1);
 
-    tft.fillScreen(ILI9341_GREEN);
-    delay(1000);
+    tft.fillScreen(ST77XX_BLACK);
 
-    tft.fillScreen(ILI9341_BLUE);
-    delay(1000);
+    // Dòng chữ
+    tft.setTextColor(ST77XX_CYAN);
+    tft.setTextSize(3);
 
-    // Nền đen
-    tft.fillScreen(ILI9341_BLACK);
+    tft.setCursor(20, 80);
+    tft.println("LAM NY TO NHE");
 
-    // Chữ trắng
-    tft.setTextColor(ILI9341_WHITE);
-    tft.setTextSize(4);
+    // Tim ban đầu
+    drawHearts();
 
-    tft.setCursor(20, 130);
-    tft.println("TO THICH CAU");
-
-    tft.setCursor(30, 180);
-    tft.println(",<3.<3.<3");
+    Serial.println("DONE");
 }
 
 void loop()
 {
-    // Không cần làm gì
+    unsigned long now = millis();
+
+    if (now - lastBlink >= 500)
+    {
+        lastBlink = now;
+
+        heartVisible = !heartVisible;
+
+        // Xóa vùng trái tim
+        tft.fillRect(
+            35,
+            145,
+            230,
+            40,
+            ST77XX_BLACK
+        );
+
+        if (heartVisible)
+        {
+            drawHearts();
+        }
+    }
 }
